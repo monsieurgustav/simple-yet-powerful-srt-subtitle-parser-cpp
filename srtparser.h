@@ -71,26 +71,26 @@ private:
 public:
     long int getStartTime() const;          //returns starting time in ms
     long int getEndTime() const;            //returns ending time in ms
-    std::string getText() const;            //returns subtitle text as present in .srt file
+    const std::string& getText() const;            //returns subtitle text as present in .srt file
 
     int getSubNo() const;              //returns subtitle number
-    std::string getStartTimeString() const; //returns sarting time as present in .srt file
-    std::string getEndTimeString() const;   //returns ending time as present in .srt file
+    const std::string& getStartTimeString() const; //returns sarting time as present in .srt file
+    const std::string& getEndTimeString() const;   //returns ending time as present in .srt file
     bool getIgnoreStatus() const;           //returns status, whether the subtitle is ignorable or not after processing
-    std::string getDialogue(bool keepHTML = 0, bool doNotIgnoreNonDialogues = 0,  bool doNotRemoveSpeakerNames = 0); //returns processed subtitle
+    const std::string& getDialogue() const; //returns processed subtitle
     int getSpeakerCount() const;            //return speaker count
     int getNonDialogueCount() const;        //return non dialogue words count
     int getStyleTagCount() const;           //return style tags count
     int getWordCount() const;               //return words count
-    std::vector<std::string> getIndividualWords(); //return string vector of individual words
-    std::string getWordByIndex(int index);       //return word stored at 'index'
-    std::vector<long int> getWordStartTimes();   //return long int vector of start time of individual words
-    std::vector<long int> getWordEndTimes();     //return long int vector of end time of individual words
+    const std::vector<std::string>& getIndividualWords(); //return string vector of individual words
+    const std::string& getWordByIndex(int index);       //return word stored at 'index'
+    const std::vector<long int>& getWordStartTimes();   //return long int vector of start time of individual words
+    const std::vector<long int>& getWordEndTimes();     //return long int vector of end time of individual words
     long int getWordStartTimeByIndex(int index); //return the start time of a word based on index
     long int getWordEndTimeByIndex (int index);  //return the end time of a word based on index
-    std::vector<std::string> getSpeakerNames();  //return string vector of speaker names
-    std::vector<std::string> getNonDialogueWords(); //return string vector of non dialogue words
-    std::vector<std::string> getStyleTags();    //return string vector of style tags
+    const std::vector<std::string>& getSpeakerNames();  //return string vector of speaker names
+    const std::vector<std::string>& getNonDialogueWords(); //return string vector of non dialogue words
+    const std::vector<std::string>& getStyleTags();    //return string vector of style tags
 
 
     void setStartTime(long int startTime);  //set starting time
@@ -115,7 +115,7 @@ protected:
     std::string _fileName;                              //supplied filename
     virtual void parse(std::string fileName) = 0;
 public:
-    virtual std::vector<SubtitleItem*> getSubtitles();  //returns subtitles
+    virtual const std::vector<SubtitleItem*>& getSubtitles();  //returns subtitles
     std::string getFileData();
     SubtitleParser(void);
     virtual ~SubtitleParser(void);
@@ -161,7 +161,7 @@ inline SubtitleParserFactory::~SubtitleParserFactory(void)
 
 //2. SubtitleParser class
 
-inline std::vector<SubtitleItem*> SubtitleParser::getSubtitles()
+inline const std::vector<SubtitleItem*>& SubtitleParser::getSubtitles()
 {
     return _subtitles;
 }
@@ -328,7 +328,7 @@ inline long int SubtitleItem::getEndTime() const
     return _endTime;
 }
 
-inline std::string SubtitleItem::getText() const
+inline const std::string& SubtitleItem::getText() const
 {
     return _text;
 }
@@ -355,12 +355,12 @@ inline int SubtitleItem::getSubNo() const
 {
     return _subNo;
 }
-inline std::string SubtitleItem::getStartTimeString() const
+inline const std::string& SubtitleItem::getStartTimeString() const
 {
     return _startTimeString;
 }
 
-inline std::string SubtitleItem::getEndTimeString() const
+inline const std::string& SubtitleItem::getEndTimeString() const
 {
     return _endTimeString;
 }
@@ -591,27 +591,27 @@ inline int SubtitleItem::getWordCount() const
 {
     return _wordCount;
 }
-inline std::vector<std::string> SubtitleItem::getSpeakerNames()
+inline const std::vector<std::string>& SubtitleItem::getSpeakerNames()
 {
     return _speaker;
 }
-inline std::vector<std::string> SubtitleItem::getNonDialogueWords()
+inline const std::vector<std::string>& SubtitleItem::getNonDialogueWords()
 {
     return _nonDialogue;
 }
-inline std::vector<std::string> SubtitleItem::getIndividualWords()
+inline const std::vector<std::string>& SubtitleItem::getIndividualWords()
 {
     return _word;
 }
-inline std::string SubtitleItem::getWordByIndex(int index)
+inline const std::string& SubtitleItem::getWordByIndex(int index)
 {
     return _word[index];
 }
-inline std::vector<long int> SubtitleItem::getWordStartTimes()
+inline const std::vector<long int>& SubtitleItem::getWordStartTimes()
 {
     return _wordStartTime;
 }
-inline std::vector<long int> SubtitleItem::getWordEndTimes()
+inline const std::vector<long int>& SubtitleItem::getWordEndTimes()
 {
     return _wordEndTime;
 }
@@ -623,7 +623,7 @@ inline long int SubtitleItem::getWordEndTimeByIndex(int index)
 {
     return _wordEndTime[index];
 }
-inline std::vector<std::string> SubtitleItem::getStyleTags()
+inline const std::vector<std::string>& SubtitleItem::getStyleTags()
 {
     return _styleTag;
 }
