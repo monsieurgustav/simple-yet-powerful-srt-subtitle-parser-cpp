@@ -99,12 +99,7 @@ public:
     void setWordTimes(std::vector<long int> wordStartTime, std::vector<long int> wordEndTime, std::vector<long int> wordDuration);  //assign time to individual words
 
     SubtitleItem(void);
-    SubtitleItem(int subNo, std::string startTime,std::string endTime, std::string text, bool ignore = false,
-                 std::string justDialogue = "" , int speakerCount = 0, int nonDialogueCount = 0,
-                 int styleTagCount = 0, int wordCount = 0, std::vector<std::string> speaker = std::vector<std::string>(),
-                 std::vector<std::string> nonDialogue = std::vector<std::string>(),
-                 std::vector<std::string> styleTags = std::vector<std::string>(),
-                 std::vector<std::string> word = std::vector<std::string>());  //default constructor
+    SubtitleItem(int subNo, std::string startTime,std::string endTime, std::string text, bool keepHTML = 0, bool doNotIgnoreNonDialogues = 0, bool doNotRemoveSpeakerNames = 0);
     ~SubtitleItem(void);
 };
 
@@ -113,7 +108,7 @@ class SubtitleParser
 protected:
     std::vector<SubtitleItem*> _subtitles;              //stores subtitles
     std::string _fileName;                              //supplied filename
-    virtual void parse(std::string fileName) = 0;
+    virtual void parse(std::string fileName, bool keepHTML = 0, bool doNotIgnoreNonDialogues = 0, bool doNotRemoveSpeakerNames = 0) = 0;
 public:
     virtual const std::vector<SubtitleItem*>& getSubtitles();  //returns subtitles
     std::string getFileData();
@@ -126,17 +121,17 @@ class SubtitleParserFactory
 private:
     std::string _fileName;
 public:
-    SubtitleParser* getParser();
+    SubtitleParser* getParser(bool keepHTML = 0, bool doNotIgnoreNonDialogues = 0, bool doNotRemoveSpeakerNames = 0);
     SubtitleParserFactory(std::string fileName);
     ~SubtitleParserFactory(void);
 };
 
 class SubRipParser : public SubtitleParser
 {
-    void parse(std::string fileName);
+    void parse(std::string fileName, bool keepHTML, bool doNotIgnoreNonDialogues, bool doNotRemoveSpeakerNames);
 public:
     SubRipParser(void);
-    SubRipParser(std::string fileName);
+    SubRipParser(std::string fileName, bool keepHTML = 0, bool doNotIgnoreNonDialogues = 0, bool doNotRemoveSpeakerNames = 0);
     ~SubRipParser(void);
 };
 
@@ -150,9 +145,9 @@ inline SubtitleParserFactory::SubtitleParserFactory(std::string fileName)
     _fileName = fileName;
 }
 
-inline SubtitleParser* SubtitleParserFactory::getParser()
+inline SubtitleParser* SubtitleParserFactory::getParser(bool keepHTML, bool doNotIgnoreNonDialogues, bool doNotRemoveSpeakerNames)
 {
-    return new SubRipParser(_fileName);                 //creates and returns SubRipParser obj
+    return new SubRipParser(_fileName, keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames);                 //creates and returns SubRipParser obj
 }
 
 inline SubtitleParserFactory::~SubtitleParserFactory(void)
@@ -195,7 +190,7 @@ inline SubRipParser::SubRipParser(void)
 {
 }
 
-inline void SubRipParser::parse(std::string fileName)      //srt parser
+inline void SubRipParser::parse(std::string fileName, bool keepHTML, bool doNotIgnoreNonDialogues, bool doNotRemoveSpeakerNames)      //srt parser
 {
 
     std::ifstream infile(fileName);
@@ -245,21 +240,21 @@ inline void SubRipParser::parse(std::string fileName)      //srt parser
         else
         {
             turn = 0;
-            _subtitles.push_back(new SubtitleItem(subNo,start,end,completeLine));
+            _subtitles.push_back(new SubtitleItem(subNo,start,end,completeLine, keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames));
             completeLine = timeLine = "";
         }
 
         if(infile.eof())    //insert last remaining subtitle
         {
-            _subtitles.push_back(new SubtitleItem(subNo,start,end,completeLine));
+            _subtitles.push_back(new SubtitleItem(subNo,start,end,completeLine, keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames));
         }
     }
 }
 
-inline SubRipParser::SubRipParser(std::string fileName)
+inline SubRipParser::SubRipParser(std::string fileName, bool keepHTML, bool doNotIgnoreNonDialogues, bool doNotRemoveSpeakerNames)
 {
     _fileName = fileName;
-    parse(fileName);
+    parse(fileName, keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames);
 }
 
 inline SubRipParser::~SubRipParser(void)
@@ -277,10 +272,7 @@ inline SubtitleItem::SubtitleItem(void)
 {
 }
 
-inline SubtitleItem::SubtitleItem(int subNo, std::string startTime,std::string endTime, std::string text, bool ignore,
-                           std::string justDialogue, int speakerCount, int nonDialogueCount,
-                           int styleTagCount, int wordCount, std::vector<std::string> speaker, std::vector<std::string> nonDialogue,
-                           std::vector<std::string> styleTags, std::vector<std::string> word)
+inline SubtitleItem::SubtitleItem(int subNo, std::string startTime,std::string endTime, std::string text, bool keepHTML, bool doNotIgnoreNonDialogues, bool doNotRemoveSpeakerNames)
 {
     _startTime = timeMSec(startTime);
     _endTime = timeMSec(endTime);
@@ -289,18 +281,18 @@ inline SubtitleItem::SubtitleItem(int subNo, std::string startTime,std::string e
     _subNo = subNo;
     _startTimeString = startTime;
     _endTimeString = endTime;
-    _ignore = ignore;
-    _justDialogue = justDialogue;
-    _speakerCount = speakerCount;
-    _nonDialogueCount = nonDialogueCount;
-    _wordCount = wordCount;
-    _speaker = speaker;
-    _styleTagCount = styleTagCount;
-    _styleTag = styleTags;
-    _nonDialogue = nonDialogue;
-    _word = word;
+    _ignore = false;
+    _justDialogue.clear();
+    _speakerCount = 0;
+    _nonDialogueCount = 0;
+    _wordCount = 0;
+    _speaker.clear();
+    _styleTagCount = 0;
+    _styleTag.clear();
+    _nonDialogue.clear();
+    _word.clear();
 
-    extractInfo();
+    extractInfo(keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames);
 }
 
 inline long int SubtitleItem::timeMSec(std::string value)
@@ -568,11 +560,8 @@ inline void SubtitleItem::extractInfo(bool keepHTML, bool doNotIgnoreNonDialogue
     }
 }
 
-inline std::string SubtitleItem::getDialogue(bool keepHTML, bool doNotIgnoreNonDialogues,  bool doNotRemoveSpeakerNames)
+inline const std::string& SubtitleItem::getDialogue() const
 {
-    if(_justDialogue.empty())
-        extractInfo(keepHTML, doNotIgnoreNonDialogues, doNotRemoveSpeakerNames);
-
     return _justDialogue;
 }
 inline int SubtitleItem::getSpeakerCount() const
