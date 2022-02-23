@@ -229,7 +229,7 @@ inline void SubRipParser::parse(std::string fileName, bool keepHTML, bool doNotI
             else
             {
                 if (completeLine != "")
-                    completeLine += " ";
+                    completeLine += '\n';
 
                 completeLine += line;
             }
